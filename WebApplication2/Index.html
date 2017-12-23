@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script type="text/javascript" src="./Content/js/jquery-3.2.1.min.js"></script>
+    <script>
+      
+        // Send image
+        function send() {
+            if (alreadyLoad) {
+                showSnackbar("There is already work")
+            } else {
+                alreadyLoad = true;
+                var image;
+                var layer;
+                var selectedMode = $("input[name='select']:checked")[0].value;
+                image = $("#image")[0].toDataURL().split(",")[1];
+                layer = $("#layer")[0].toDataURL().split(",")[1];
+                var data = Object.assign({}, { Image: image, Layer: layer, Mode: parseInt(selectedMode) }, selectedColor)
+                loadingImg = document.createElement("img");
+                loadingImg.src = './Content/image/loading.gif';
+                loadingImg.id = "loading"
+                $("#controll-bar")[0].appendChild(loadingImg)
+                $.ajax({
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    url: "api/Parser",
+                    contentType: "application/json",
+                    success: function (data) {
+                        alreadyLoad = false;
+                        $("#loading").animate({
+                            height: 0
+                        }, 1000, function () {
+                            $("#controll-bar")[0].removeChild(loadingImg)
+                            var link = "<p><a href=data:image/png;base64," + data + " download='filename.png'>Link to image</a></p>"
+                            $("#controll-bar")[0].innerHTML += link;
+                        })
+                    },
+                    error: function (data) {
+                        alreadyLoad = false;
+                        console.log(data)
+                    }
+                });
+            }
+
+                
+            //}
+            //reader.readAsDataURL(image)
+            
+           
+        }
+    </script>
+    <script type="text/javascript" src="./Content/js/listeners.js"></script>
+    <script type="text/javascript" src="./Content/js/script.js"></script>
+    <link rel="stylesheet" href="./Content/style.css" type="text/css" />
+    <link rel="stylesheet" href="./Content/Scss1.css" type="text/css" />
+    <link rel="stylesheet" href="./Content/snackbar.css" type="text/css" />
+</head>
+<body>
+    <input id="file" name="myFile" type="file">
+    <div id="controll-bar">
+        <form>
+            <section>
+                <div>
+                    <input type="radio" id="control_01" name="select" value="1" checked>
+                    <label onclick="chooseMode('smart')" for="control_01">
+                        <h3>Smart</h3>
+                        <!--<p>Remove alpha by selected area</p>-->
+                    </label>
+                </div>
+                <div>
+                    <input type="radio" id="control_02" name="select" value="2">
+                    <label onclick="chooseMode('bySelectedArea')" for="control_02">
+                        <h3>By selected area</h3>
+                        <!--<p>Remove all EXCEPT selected area.</p>-->
+                    </label>
+                </div>
+            </section>
+        </form>
+        <div id="buttons">
+                <div class="button action-button blue" id="btnSelect" onclick="select();">
+                    Select
+                </div>
+                <div class="button action-button blue" id="btnChooseColor" onclick="chooseColor();">
+                    Coose color
+                </div>
+                <div class="button action-button blue" id="btnClear" onclick="clearArea();">
+                    Clear
+                </div>
+                <div class="button action-button green" id="btnSend" onclick="send()">
+                    Send
+                </div>
+        </div>
+    </div>
+    <div id="canvas-bar">
+        <img id="imgTest" hidden>
+        <div id="canvas-area">
+            <canvas class="canvas" height="0" width="0" id="image">
+                Обновите браузер
+            </canvas>
+            <canvas class="canvas" style="opacity:0.5;" height="0" width="0" id="layer">
+                Обновите браузер
+            </canvas>
+            <canvas class="canvas" height="0" width="0" id="mouse">
+                Обновите браузер
+            </canvas>
+        </div>
+        <div id="snackbar"></div>
+    </div>
+</body>
+</html>
